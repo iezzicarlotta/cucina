@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Carrello - La Cucina Italiana</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <nav class="navbar">
+      <div>
+        <strong>La Cucina Italiana</strong>
+      </div>
+      <div>
+        <a href="index.html">Home</a>
+        <a href="login.html">Login</a>
+      </div>
+    </nav>
+
+    <main class="container">
+      <h1>Il tuo carrello</h1>
+      <section id="cart-items"></section>
+      <div class="cart-total" id="cart-total"></div>
+      <button id="checkout" class="button button-primary">Checkout</button>
+      <p id="cart-message" class="notice"></p>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/carrello.js"></script>
+  </body>
+</html>
