@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>La Cucina Italiana</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <nav class="navbar">
+      <div>
+        <strong>La Cucina Italiana</strong>
+      </div>
+      <div>
+        <span id="user-info" class="notice"></span>
+        <a href="login.html">Login</a>
+        <a href="carrello.html">Carrello</a>
+      </div>
+    </nav>
+
+    <main class="container">
+      <div class="header">
+        <div>
+          <h1>Ricette complete</h1>
+          <p class="notice">Ingredienti inclusi e costo per persona.</p>
+        </div>
+        <select id="genre-filter">
+          <option value="">Tutti i generi</option>
+          <option value="Primo">Primo</option>
+          <option value="Secondo">Secondo</option>
+          <option value="Dolce">Dolce</option>
+          <option value="Antipasto">Antipasto</option>
+        </select>
+      </div>
+
+      <section class="cards" id="recipes"></section>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/ricette.js"></script>
+  </body>
+</html>
