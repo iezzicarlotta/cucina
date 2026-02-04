@@ -43,3 +43,5 @@ Web application che permette di consultare ricette italiane complete, visualizza
 
 ## Note sull'architettura
 Il backend espone endpoint REST per autenticazione, ricette, carrello e checkout. Il frontend usa fetch API per interagire con i dati e gestisce la UI in modo dinamico.
+
+<!-- COMMENTO: Attualmente ci sono problemi con alcune funzionalità dell'applicazione. La pagina di login e il carrello non funzionano, e per le ricette è possibile scegliere solo il tipo di piatto. Credo che il problema principale sia il mancato collegamento al database. -->
