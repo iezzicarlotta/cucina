@@ -34,7 +34,7 @@ def login():
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
     cursor.execute(
-        "SELECT id, username, email, password_hash FROM users WHERE username=%s OR email=%s",
+        "SELECT ID as id, username, email, password_hash FROM UTENTI WHERE username=%s OR email=%s",
         (identifier, identifier),
     )
     user = cursor.fetchone()
@@ -46,6 +46,8 @@ def login():
 
     session["user_id"] = user["id"]
     session["username"] = user["username"]
+
+    print("Sessione impostata:", session)  # Debug: Verifica sessione
 
     return jsonify({"message": "Login effettuato", "username": user["username"]})
 

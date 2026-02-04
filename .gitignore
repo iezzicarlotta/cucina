@@ -1,0 +1,5 @@
+# Ignore environment files
+backend/.env
+
+# Ignora i file di test
+backend/test_*.py

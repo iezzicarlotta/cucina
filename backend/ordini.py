@@ -16,7 +16,7 @@ def checkout():
     cursor = connection.cursor(dictionary=True)
 
     cursor.execute(
-        "SELECT id FROM carts WHERE user_id=%s AND status='active'",
+        "SELECT ID FROM CARRELLI WHERE ID_UTENTE=%s",
         (user_id,),
     )
     cart = cursor.fetchone()
@@ -27,11 +27,11 @@ def checkout():
 
     cursor.execute(
         """
-        SELECT recipe_id, people, wine_id, subtotal
-        FROM cart_items
-        WHERE cart_id=%s
+        SELECT ID_RICETTA as recipe_id, persone as people, ID_VINO as wine_id, prezzo_item as subtotal
+        FROM CARRELLO_ITEM
+        WHERE ID_CARRELLO=%s
         """,
-        (cart["id"],),
+        (cart["ID"],),
     )
     items = cursor.fetchall()
     if not items:
@@ -41,7 +41,7 @@ def checkout():
 
     total = sum(float(item["subtotal"]) for item in items)
     cursor.execute(
-        "INSERT INTO orders (user_id, total, status) VALUES (%s, %s, 'pagato')",
+        "INSERT INTO ORDINI (ID_UTENTE, totale, stato) VALUES (%s, %s, 'pagato')",
         (user_id, total),
     )
     order_id = cursor.lastrowid
@@ -49,14 +49,14 @@ def checkout():
     for item in items:
         cursor.execute(
             """
-            INSERT INTO order_items (order_id, recipe_id, people, wine_id, subtotal)
+            INSERT INTO ORDINE_RICETTA (ID_ORDINE, ID_RICETTA, ID_VINO, persone, prezzo_item)
             VALUES (%s, %s, %s, %s, %s)
             """,
-            (order_id, item["recipe_id"], item["people"], item["wine_id"], item["subtotal"]),
+            (order_id, item["recipe_id"], item["wine_id"], item["people"], item["subtotal"]),
         )
 
-    cursor.execute("UPDATE carts SET status='closed' WHERE id=%s", (cart["id"],))
-    cursor.execute("DELETE FROM cart_items WHERE cart_id=%s", (cart["id"],))
+    cursor.execute("UPDATE CARRELLI SET aggiornato=NOW() WHERE ID=%s", (cart["ID"],))
+    cursor.execute("DELETE FROM CARRELLO_ITEM WHERE ID_CARRELLO=%s", (cart["ID"],))
 
     connection.commit()
     cursor.close()

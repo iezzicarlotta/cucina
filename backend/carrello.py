@@ -9,14 +9,14 @@ carrello_bp = Blueprint("carrello", __name__)
 
 def _get_or_create_cart(cursor, user_id):
     cursor.execute(
-        "SELECT id FROM carts WHERE user_id=%s AND status='active'",
+        "SELECT ID FROM CARRELLI WHERE ID_UTENTE=%s",
         (user_id,),
     )
     cart = cursor.fetchone()
     if cart:
-        return cart["id"]
+        return cart["ID"]
     cursor.execute(
-        "INSERT INTO carts (user_id, status) VALUES (%s, 'active')",
+        "INSERT INTO CARRELLI (ID_UTENTE) VALUES (%s)",
         (user_id,),
     )
     return cursor.lastrowid
@@ -45,14 +45,14 @@ def add_to_cart():
 
     wine_price = 0
     if wine_id:
-        cursor.execute("SELECT price FROM wines WHERE id=%s", (wine_id,))
+        cursor.execute("SELECT prezzo FROM VINI WHERE ID=%s", (wine_id,))
         wine_row = cursor.fetchone()
-        wine_price = float(wine_row["price"]) if wine_row else 0
+        wine_price = float(wine_row["prezzo"]) if wine_row and wine_row.get("prezzo") is not None else 0
     subtotal += wine_price
 
     cursor.execute(
         """
-        INSERT INTO cart_items (cart_id, recipe_id, people, wine_id, subtotal)
+        INSERT INTO CARRELLO_ITEM (ID_CARRELLO, ID_RICETTA, persone, ID_VINO, prezzo_item)
         VALUES (%s, %s, %s, %s, %s)
         """,
         (cart_id, recipe_id, people, wine_id, subtotal),
@@ -75,7 +75,7 @@ def get_cart():
     cursor = connection.cursor(dictionary=True)
 
     cursor.execute(
-        "SELECT id FROM carts WHERE user_id=%s AND status='active'",
+        "SELECT ID FROM CARRELLI WHERE ID_UTENTE=%s",
         (user_id,),
     )
     cart = cursor.fetchone()
@@ -86,14 +86,15 @@ def get_cart():
 
     cursor.execute(
         """
-        SELECT ci.id, ci.people, ci.subtotal, r.title, r.image_url,
-               w.name AS wine_name
-        FROM cart_items ci
-        JOIN recipes r ON r.id = ci.recipe_id
-        LEFT JOIN wines w ON w.id = ci.wine_id
-        WHERE ci.cart_id = %s
+        SELECT ci.ID as id, ci.persone as people, ci.prezzo_item as subtotal,
+               r.titolo as title, (SELECT m.url FROM MEDIA m WHERE m.ID_RICETTA = r.ID LIMIT 1) as image_url,
+               v.nome AS wine_name
+        FROM CARRELLO_ITEM ci
+        JOIN RICETTE r ON r.ID = ci.ID_RICETTA
+        LEFT JOIN VINI v ON v.ID = ci.ID_VINO
+        WHERE ci.ID_CARRELLO = %s
         """,
-        (cart["id"],),
+        (cart["ID"],),
     )
     items = cursor.fetchall()
     total = sum(float(item["subtotal"]) for item in items)
@@ -120,9 +121,9 @@ def remove_from_cart():
 
     cursor.execute(
         """
-        DELETE ci FROM cart_items ci
-        JOIN carts c ON c.id = ci.cart_id
-        WHERE ci.id=%s AND c.user_id=%s AND c.status='active'
+        DELETE ci FROM CARRELLO_ITEM ci
+        JOIN CARRELLI c ON c.ID = ci.ID_CARRELLO
+        WHERE ci.ID=%s AND c.ID_UTENTE=%s
         """,
         (item_id, user_id),
     )

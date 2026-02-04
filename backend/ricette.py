@@ -8,10 +8,10 @@ ricette_bp = Blueprint("ricette", __name__)
 def _recipe_cost(cursor, recipe_id):
     cursor.execute(
         """
-        SELECT SUM(ri.qty_per_person * i.price_per_unit) AS costo
-        FROM recipe_ingredients ri
-        JOIN ingredients i ON i.id = ri.ingredient_id
-        WHERE ri.recipe_id = %s
+        SELECT SUM(ri.quantita_per_persona * i.prezzo_per_unita) AS costo
+        FROM RICETTA_INGREDIENTE ri
+        JOIN INGREDIENTI i ON i.ID = ri.ID_INGREDIENTE
+        WHERE ri.ID_RICETTA = %s
         """,
         (recipe_id,),
     )
@@ -27,11 +27,24 @@ def list_recipes():
 
     if genre:
         cursor.execute(
-            "SELECT id, title, description, image_url, genre FROM recipes WHERE genre=%s",
+            """
+            SELECT r.ID as id, r.titolo as title, r.descrizione as description,
+                   (SELECT m.url FROM MEDIA m WHERE m.ID_RICETTA = r.ID LIMIT 1) AS image_url
+            FROM RICETTE r
+            JOIN GENERE_RICETTA gr ON gr.ID_RICETTA = r.ID
+            JOIN GENERI g ON g.ID = gr.ID_GENERE
+            WHERE g.nome = %s
+            """,
             (genre,),
         )
     else:
-        cursor.execute("SELECT id, title, description, image_url, genre FROM recipes")
+        cursor.execute(
+            """
+            SELECT r.ID as id, r.titolo as title, r.descrizione as description,
+                   (SELECT m.url FROM MEDIA m WHERE m.ID_RICETTA = r.ID LIMIT 1) AS image_url
+            FROM RICETTE r
+            """
+        )
 
     recipes = cursor.fetchall()
     for recipe in recipes:
@@ -49,7 +62,7 @@ def recipe_detail(recipe_id):
     cursor = connection.cursor(dictionary=True)
 
     cursor.execute(
-        "SELECT id, title, description, image_url, genre FROM recipes WHERE id=%s",
+        "SELECT ID as id, titolo as title, descrizione as description FROM RICETTE WHERE ID=%s",
         (recipe_id,),
     )
     recipe = cursor.fetchone()
@@ -58,27 +71,36 @@ def recipe_detail(recipe_id):
         connection.close()
         return jsonify({"error": "Ricetta non trovata"}), 404
 
+    # ingredienti
     cursor.execute(
         """
-        SELECT i.name, i.unit, i.price_per_unit, ri.qty_per_person
-        FROM recipe_ingredients ri
-        JOIN ingredients i ON i.id = ri.ingredient_id
-        WHERE ri.recipe_id = %s
+        SELECT i.nome AS name, i.unita_base AS unit, i.prezzo_per_unita AS price_per_unit,
+               ri.quantita_per_persona AS qty_per_persona, ri.unita_misura
+        FROM RICETTA_INGREDIENTE ri
+        JOIN INGREDIENTI i ON i.ID = ri.ID_INGREDIENTE
+        WHERE ri.ID_RICETTA = %s
         """,
         (recipe_id,),
     )
     recipe["ingredienti"] = cursor.fetchall()
 
+    # vini consigliati
     cursor.execute(
         """
-        SELECT w.id, w.name, w.price
-        FROM recipe_wines rw
-        JOIN wines w ON w.id = rw.wine_id
-        WHERE rw.recipe_id = %s
+        SELECT v.ID AS id, v.nome AS name, v.tipo AS type, rv.annata
+        FROM RICETTA_VINO rv
+        JOIN VINI v ON v.ID = rv.ID_VINO
+        WHERE rv.ID_RICETTA = %s
         """,
         (recipe_id,),
     )
     recipe["vini_consigliati"] = cursor.fetchall()
+    recipe["image_url"] = None
+    cursor.execute("SELECT url FROM MEDIA WHERE ID_RICETTA=%s LIMIT 1", (recipe_id,))
+    img = cursor.fetchone()
+    if img:
+        recipe["image_url"] = img["url"]
+
     recipe["costo_per_persona"] = _recipe_cost(cursor, recipe_id)
 
     cursor.close()
